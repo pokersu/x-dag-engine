@@ -5,7 +5,7 @@
 
 use crate::{
     Condition, Edge, LoopConfig, Node, NodeId,
-    NodeKind, ParallelConfig, RetryConfig, ScriptConfig, SubWorkflowConfig, SwitchConfig,
+    NodeKind, ParallelConfig, RetryConfig, SubWorkflowConfig, SwitchConfig,
     TimeoutConfig, TryCatchConfig, Workflow,
 };
 
@@ -59,21 +59,6 @@ impl WorkflowBuilder {
     /// Add an end node
     pub fn end(mut self, name: impl Into<String>) -> Self {
         let node = Node::new(name.into(), NodeKind::End);
-        let node_id = node.id;
-        self.workflow.add_node(node);
-
-        // Auto-connect from last node if exists
-        if let Some(from_id) = self.last_node_id {
-            self.workflow.add_edge(Edge::new(from_id, node_id));
-        }
-
-        self.last_node_id = Some(node_id);
-        self
-    }
-
-    /// Add a code execution node
-    pub fn code(mut self, name: impl Into<String>, config: ScriptConfig) -> Self {
-        let node = Node::new(name.into(), NodeKind::Code(config));
         let node_id = node.id;
         self.workflow.add_node(node);
 
@@ -282,27 +267,6 @@ mod tests {
         assert_eq!(workflow.metadata.tags, vec!["test"]);
         assert_eq!(workflow.nodes.len(), 2);
         assert_eq!(workflow.edges.len(), 1);
-    }
-
-    #[test]
-
-    #[test]
-    fn test_workflow_builder_with_code() {
-        let script_config = ScriptConfig {
-            runtime: "rust".to_string(),
-            code: "println!(\"Hello\");".to_string(),
-            inputs: vec![],
-            output: "result".to_string(),
-        };
-
-        let workflow = WorkflowBuilder::new("Code Workflow")
-            .start("Start")
-            .code("Execute", script_config)
-            .end("End")
-            .build();
-
-        assert_eq!(workflow.nodes.len(), 3);
-        assert_eq!(workflow.edges.len(), 2);
     }
 
     #[test]

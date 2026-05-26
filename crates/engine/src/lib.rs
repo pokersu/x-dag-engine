@@ -1,6 +1,5 @@
 //! DAG execution engine for API orchestration
 
-mod code_executor;
 mod conditional;
 mod event_bus;
 mod loop_executor;
@@ -13,7 +12,6 @@ mod try_catch_executor;
 mod variable_store;
 mod webhook;
 
-pub use code_executor::CodeExecutor;
 pub use conditional::ConditionalEvaluator;
 pub use event_bus::{
     execution_events, EventBus, EventHandler, EventType, WorkflowEvent, WorkflowTrigger,
@@ -342,12 +340,6 @@ impl Engine {
         let result = match &node.kind {
             NodeKind::Start => ExecutionResult::Success(serde_json::json!({})),
             NodeKind::End => ExecutionResult::Success(serde_json::json!({})),
-            NodeKind::Code(config) => {
-                let executor = CodeExecutor::new();
-                let value = executor.execute(config, ctx).await
-                    .map_err(|e| EngineError::ExecutionError(e.to_string()))?;
-                ExecutionResult::Success(value)
-            }
             NodeKind::IfElse(condition) => {
                 let evaluator = ConditionalEvaluator::new(ctx)
                     .map_err(|e| EngineError::ExecutionError(e.to_string()))?;

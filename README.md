@@ -10,7 +10,6 @@
 
 - **DAG 工作流** — 拓扑排序 + 分层并行执行
 - **控制流节点** — IfElse / Switch / Loop / TryCatch / Parallel
-- **代码节点** — Rhai 脚本引擎执行内联逻辑
 - **HTTP 客户端** — RestConnector（支持 Bearer / API Key / Basic / OAuth2）
 - **重试机制** — 指数退避重试
 - **事件驱动** — 执行事件总线（SSE 推送）
@@ -35,28 +34,19 @@ x-dag-engine/
 
 ```rust
 use oxify_engine::{Engine, ExecutionConfig};
-use oxify_model::{Workflow, Node, NodeKind, Edge, ScriptConfig};
+use oxify_model::{Workflow, Node, NodeKind, Edge};
 
 // 构建工作流
 let mut workflow = Workflow::new("my-flow".to_string());
 let start = Node::new("Start".to_string(), NodeKind::Start);
-let process = Node::new("Process".to_string(), NodeKind::Code(ScriptConfig {
-    runtime: "rhai".to_string(),
-    code: "let result = 42;".to_string(),
-    inputs: vec![],
-    output: "output".to_string(),
-}));
 let end = Node::new("End".to_string(), NodeKind::End);
 
 let start_id = start.id;
-let process_id = process.id;
 let end_id = end.id;
 
 workflow.add_node(start);
-workflow.add_node(process);
 workflow.add_node(end);
-workflow.add_edge(Edge::new(start_id, process_id));
-workflow.add_edge(Edge::new(process_id, end_id));
+workflow.add_edge(Edge::new(start_id, end_id));
 
 // 执行
 let engine = Engine::new();

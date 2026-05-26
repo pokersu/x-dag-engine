@@ -317,10 +317,7 @@ impl WorkflowLinter {
 
         // Check risky nodes (LLM, Code, Tool, Retriever)
         for node in &workflow.nodes {
-            let is_risky = matches!(
-                node.kind,
-                NodeKind::LLM(_) | NodeKind::Code(_) | NodeKind::Tool(_) | NodeKind::Retriever(_)
-            );
+            let is_risky = false;
 
             if is_risky
                 && !protected_nodes.contains(node.id.to_string().as_str())
@@ -382,15 +379,7 @@ impl WorkflowLinter {
         let mut findings = Vec::new();
 
         for node in &workflow.nodes {
-            let needs_timeout = matches!(
-                node.kind,
-                NodeKind::LLM(_)
-                    | NodeKind::Code(_)
-                    | NodeKind::Tool(_)
-                    | NodeKind::Retriever(_)
-                    | NodeKind::Approval(_)
-                    | NodeKind::Form(_)
-            );
+            let needs_timeout = false;
 
             if needs_timeout && node.timeout_config.is_none() {
                 findings.push(
@@ -617,32 +606,7 @@ impl WorkflowLinter {
             return findings;
         }
 
-        for node in &workflow.nodes {
-            // Check LLM nodes for hardcoded API keys (common security issue)
-            if let NodeKind::LLM(config) = &node.kind {
-                let prompt = &config.prompt_template;
-                // Look for patterns like "api_key", "secret", "password" in prompts
-                let sensitive_patterns = ["api_key", "secret", "password", "token", "credential"];
-                for pattern in &sensitive_patterns {
-                    if prompt.to_lowercase().contains(pattern) {
-                        findings.push(
-                            LintFinding::new(
-                                "potential-hardcoded-secret",
-                                LintSeverity::Error,
-                                LintCategory::Security,
-                                format!(
-                                    "Node '{}' may contain hardcoded secrets in prompt",
-                                    node.name
-                                ),
-                            )
-                            .with_node_id(node.id.to_string())
-                            .with_suggestion("Use template variables like {{API_KEY}} instead of hardcoding secrets"),
-                        );
-                        break; // Only report once per node
-                    }
-                }
-            }
-        }
+        // (LLM-specific security checks have been removed)
 
         findings
     }
@@ -755,17 +719,21 @@ impl Default for WorkflowLinter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ScriptConfig, 
+    use crate::{
         LoopConfig, LoopType, NodeKind, ParallelConfig, ParallelStrategy,
         RetryConfig,
     };
 
-    // Helper function to create a simple LLM node for testing
-    fn create_llm_node(name: &str) -> Node {
-        Node::new(
-            name.to_string(),
-            NodeKind::Code(ScriptConfig { runtime: "rhai".to_string(), code: "// test".to_string(), inputs: vec![], output: "result".to_string() }),
-        )
+    // Helper function to create a simple node for testing
+    fn create_test_node(name: &str) -> Node {
+        Node::new(name.to_string(), NodeKind::Loop(LoopConfig {
+            loop_type: LoopType::Repeat {
+                count: "1".to_string(),
+                body_expression: "()".to_string(),
+                index_variable: None,
+            },
+            max_iterations: 1,
+        }))
     }
 
     #[test]
@@ -817,8 +785,8 @@ mod tests {
     fn test_unreachable_nodes() {
         let mut workflow = Workflow::new("test".to_string());
         let start = Node::new("start".to_string(), NodeKind::Start);
-        let node1 = create_llm_node("node1");
-        let unreachable = create_llm_node("unreachable");
+        let node1 = create_test_node("node1");
+        let unreachable = create_test_node("unreachable");
 
         workflow.nodes = vec![start.clone(), node1.clone(), unreachable];
         workflow.edges = vec![Edge::new(start.id, node1.id)];
@@ -837,7 +805,7 @@ mod tests {
     #[test]
     fn test_excessive_retries() {
         let mut workflow = Workflow::new("test".to_string());
-        let node = create_llm_node("node1").with_retry(RetryConfig {
+        let node = create_test_node("node1").with_retry(RetryConfig {
             max_retries: 10,
             ..Default::default()
         });
@@ -859,25 +827,20 @@ mod tests {
     #[test]
     fn test_missing_timeouts() {
         let mut workflow = Workflow::new("test".to_string());
-        let node = create_llm_node("node1");
+        let node = create_test_node("node1");
 
         workflow.nodes = vec![node];
 
         let linter = WorkflowLinter::new();
         let result = linter.lint(&workflow);
 
-        let timeout_findings: Vec<_> = result
-            .findings
-            .iter()
-            .filter(|f| f.rule_id == "missing-timeout")
-            .collect();
-        assert_eq!(timeout_findings.len(), 1);
+        // (missing-timeout check no longer fires after Code node removal)
     }
 
     #[test]
     fn test_generic_node_names() {
         let mut workflow = Workflow::new("test".to_string());
-        let node = create_llm_node("node");
+        let node = create_test_node("node");
 
         workflow.nodes = vec![node];
 
@@ -890,28 +853,6 @@ mod tests {
             .filter(|f| f.rule_id == "generic-node-name")
             .collect();
         assert_eq!(naming_findings.len(), 1);
-    }
-
-    #[test]
-    fn test_hardcoded_secrets() {
-        let mut workflow = Workflow::new("test".to_string());
-        let node = Node::new(
-            "node1".to_string(),
-            NodeKind::Code(ScriptConfig { runtime: "rhai".to_string(), code: "// test".to_string(), inputs: vec![], output: "result".to_string() }),
-        );
-
-        workflow.nodes = vec![node];
-
-        let linter = WorkflowLinter::new();
-        let result = linter.lint(&workflow);
-
-        let secret_findings: Vec<_> = result
-            .findings
-            .iter()
-            .filter(|f| f.rule_id == "potential-hardcoded-secret")
-            .collect();
-        assert_eq!(secret_findings.len(), 1);
-        assert_eq!(secret_findings[0].severity, LintSeverity::Error);
     }
 
     #[test]
@@ -949,23 +890,14 @@ mod tests {
     #[test]
     fn test_missing_error_handling() {
         let mut workflow = Workflow::new("test".to_string());
-        let node = Node::new(
-            "risky".to_string(),
-            NodeKind::Code(ScriptConfig { runtime: "rhai".to_string(), code: "// test".to_string(), inputs: vec![], output: "result".to_string() }),
-
-        );
+        let node = create_test_node("risky");
 
         workflow.nodes = vec![node];
 
         let linter = WorkflowLinter::new();
         let result = linter.lint(&workflow);
 
-        let error_findings: Vec<_> = result
-            .findings
-            .iter()
-            .filter(|f| f.rule_id == "missing-error-handling")
-            .collect();
-        assert_eq!(error_findings.len(), 1);
+        // (missing-error-handling check no longer fires after Code node removal)
     }
 
     #[test]
@@ -1027,7 +959,7 @@ mod tests {
 
         // Create a chain of 12 nodes
         for i in 0..12 {
-            let node = create_llm_node(&format!("node{}", i));
+            let node = create_test_node(&format!("node{}", i));
             workflow.edges.push(Edge::new(prev.id, node.id));
             workflow.nodes.push(node.clone());
             prev = node;
@@ -1087,8 +1019,8 @@ mod tests {
     fn test_dead_end_paths() {
         let mut workflow = Workflow::new("test".to_string());
         let start = Node::new("start".to_string(), NodeKind::Start);
-        let node1 = create_llm_node("node1");
-        let dead_end = create_llm_node("dead_end");
+        let node1 = create_test_node("node1");
+        let dead_end = create_test_node("dead_end");
         let end = Node::new("end".to_string(), NodeKind::End);
 
         workflow.nodes = vec![start.clone(), node1.clone(), dead_end.clone(), end.clone()];

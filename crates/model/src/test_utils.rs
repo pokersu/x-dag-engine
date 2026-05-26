@@ -7,23 +7,15 @@
 //! # Example
 //!
 //! ```
-//! use model::test_utils::{create_test_workflow, create_test_analytics};
+//! use model::test_utils::create_test_workflow;
 //!
-//! # fn example() {
-//! // Create a simple test workflow
 //! let workflow = create_test_workflow("test", 5);
 //! assert_eq!(workflow.nodes.len(), 5);
-//!
-//! // Create mock analytics data
-//! let analytics = create_test_analytics("test", 100, 0.85);
-//! assert_eq!(analytics.execution_stats.total_executions, 100);
-//! assert_eq!(analytics.execution_stats.success_rate, 0.85);
-//! # }
 //! ```
 
 use crate::{
     execution::{ExecutionContext, ExecutionResult, NodeExecutionResult, NodeMetrics, TokenUsage},
-    node::{LoopConfig, Node, NodeKind, ScriptConfig},
+    node::{LoopConfig, LoopType, Node, NodeKind},
     workflow::{Workflow, WorkflowMetadata},
     Edge, WorkflowBuilder,
 };
@@ -35,7 +27,7 @@ use uuid::Uuid;
 ///
 /// This creates a linear workflow with:
 /// - 1 Start node
-/// - N-2 LLM nodes (where N is the node_count parameter)
+/// - N-2 Loop nodes (where N is the node_count parameter)
 /// - 1 End node
 ///
 /// # Example
@@ -47,33 +39,44 @@ use uuid::Uuid;
 /// assert_eq!(workflow.nodes.len(), 5);
 /// ```
 pub fn create_test_workflow(name: &str, node_count: usize) -> Workflow {
-    let mut builder = WorkflowBuilder::new(name);
+    let mut workflow = Workflow::new(name.to_string());
+    let mut prev_id = None;
 
     // Start node
-    builder = builder.start("Start");
+    let start = Node::new("Start".to_string(), NodeKind::Start);
+    prev_id = Some(start.id);
+    workflow.add_node(start);
 
-    // Add intermediate LLM nodes
+    // Add intermediate Loop nodes
     for i in 1..node_count.saturating_sub(1) {
-        let code_config = ScriptConfig {
-            runtime: "rhai".to_string(),
-            code: format!("// step {}", i),
-            inputs: vec![],
-            output: "result".to_string(),
+        let loop_config = LoopConfig {
+            loop_type: LoopType::Repeat {
+                count: "1".to_string(),
+                body_expression: format!("// step {}", i),
+                index_variable: None,
+            },
+            max_iterations: 1,
         };
-        builder = builder.code(format!("Code_{}", i), code_config);
+        let node = Node::new(format!("Step_{}", i), NodeKind::Loop(loop_config));
+        let node_id = node.id;
+        workflow.add_node(node);
+        workflow.add_edge(Edge::new(prev_id.unwrap(), node_id));
+        prev_id = Some(node_id);
     }
 
     // End node
-    builder = builder.end("End");
+    let end = Node::new("End".to_string(), NodeKind::End);
+    workflow.add_node(end);
+    workflow.add_edge(Edge::new(prev_id.unwrap(), workflow.nodes.last().unwrap().id));
 
-    builder.build()
+    workflow
 }
 
 /// Create a branching test workflow with a switch node
 ///
 /// This creates a workflow with:
 /// - 1 Start node
-/// - 1 LLM node
+/// - 1 Loop node
 /// - 1 Switch node (multi-branch routing)
 /// - 1 End node
 ///
@@ -93,14 +96,16 @@ pub fn create_branching_workflow(name: &str) -> Workflow {
     // Start node
     builder = builder.start("Start");
 
-    // First code node
-    let code_config = ScriptConfig {
-        runtime: "rhai".to_string(),
-        code: "// process".to_string(),
-        inputs: vec!["input".to_string()],
-        output: "result".to_string(),
+    // Intermediate loop node
+    let loop_config = LoopConfig {
+        loop_type: LoopType::Repeat {
+            count: "1".to_string(),
+            body_expression: "// process".to_string(),
+            index_variable: None,
+        },
+        max_iterations: 1,
     };
-    builder = builder.code("Process", code_config);
+    builder = builder.loop_node("Process", loop_config);
 
     // Switch branching node
     let switch_config = SwitchConfig {
@@ -124,5 +129,3 @@ pub fn create_branching_workflow(name: &str) -> Workflow {
 
     builder.build()
 }
-
-

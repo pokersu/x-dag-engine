@@ -29,12 +29,14 @@
       "id": "00000000-0000-0000-0000-000000000002",
       "name": "Process",
       "kind": {
-        "type": "Code",
+        "type": "Loop",
         "config": {
-          "runtime": "rhai",
-          "code": "let result = 42;",
-          "inputs": [],
-          "output": "output"
+          "loop_type": {
+            "variant": "Repeat",
+            "count": "1",
+            "body_expression": "42"
+          },
+          "max_iterations": 1
         }
       },
       "position": null,

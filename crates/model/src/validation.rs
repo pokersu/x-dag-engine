@@ -71,18 +71,6 @@ pub enum ValidationError {
     #[error("Parallel node {0} has duplicate task ID: {1}")]
     ParallelDuplicateTaskId(NodeId, String),
 
-    #[error("Approval node {0} has empty message")]
-    ApprovalEmptyMessage(NodeId),
-
-    #[error("Form node {0} has no fields defined")]
-    FormNoFields(NodeId),
-
-    #[error("Form node {0} has duplicate field ID: {1}")]
-    FormDuplicateFieldId(NodeId, String),
-
-    #[error("Form node {0} field '{1}' has empty label")]
-    FormFieldEmptyLabel(NodeId, String),
-
     #[error("Loop node {0} has empty collection path")]
     LoopEmptyCollectionPath(NodeId),
 
@@ -303,35 +291,6 @@ impl WorkflowValidator {
                             errors.push(ValidationError::ParallelDuplicateTaskId(
                                 node.id,
                                 task.id.clone(),
-                            ));
-                        }
-                    }
-                }
-
-                // Validate Approval nodes
-                NodeKind::Approval(config) => {
-                    if config.message.trim().is_empty() {
-                        errors.push(ValidationError::ApprovalEmptyMessage(node.id));
-                    }
-                }
-
-                // Validate Form nodes
-                NodeKind::Form(config) => {
-                    if config.fields.is_empty() {
-                        errors.push(ValidationError::FormNoFields(node.id));
-                    }
-                    let mut seen_ids = HashSet::new();
-                    for field in &config.fields {
-                        if field.label.trim().is_empty() {
-                            errors.push(ValidationError::FormFieldEmptyLabel(
-                                node.id,
-                                field.id.clone(),
-                            ));
-                        }
-                        if !seen_ids.insert(&field.id) {
-                            errors.push(ValidationError::FormDuplicateFieldId(
-                                node.id,
-                                field.id.clone(),
                             ));
                         }
                     }
@@ -588,19 +547,12 @@ impl WorkflowValidator {
             let type_name = match &node.kind {
                 NodeKind::Start => "Start",
                 NodeKind::End => "End",
-                NodeKind::LLM(_) => "LLM",
-                NodeKind::Retriever(_) => "Retriever",
-                NodeKind::Code(_) => "Code",
                 NodeKind::IfElse(_) => "IfElse",
-                NodeKind::Tool(_) => "Tool",
                 NodeKind::Loop(_) => "Loop",
                 NodeKind::TryCatch(_) => "TryCatch",
                 NodeKind::SubWorkflow(_) => "SubWorkflow",
                 NodeKind::Switch(_) => "Switch",
                 NodeKind::Parallel(_) => "Parallel",
-                NodeKind::Approval(_) => "Approval",
-                NodeKind::Form(_) => "Form",
-                NodeKind::Vision(_) => "Vision",
             };
             *node_type_counts.entry(type_name.to_string()).or_insert(0) += 1;
         }

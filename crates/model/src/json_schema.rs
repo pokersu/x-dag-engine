@@ -393,28 +393,6 @@ impl WorkflowSchemaGenerator {
 
     /// Add node type definitions to schema
     fn add_node_type_definitions(&self, schema: &mut JsonSchema) {
-        // LLM config
-        let mut llm_config = JsonSchema::object();
-        llm_config.add_property("model".to_string(), JsonSchema::string());
-        llm_config.add_property("prompt".to_string(), JsonSchema::string());
-        llm_config.add_property("temperature".to_string(), JsonSchema::number());
-        llm_config.add_property("max_tokens".to_string(), JsonSchema::integer());
-        schema.add_definition("LlmConfig".to_string(), llm_config);
-
-        // Script config
-        let mut script_config = JsonSchema::object();
-        script_config.add_property(
-            "language".to_string(),
-            JsonSchema::string().with_enum(vec![
-                json!("Python"),
-                json!("JavaScript"),
-                json!("TypeScript"),
-                json!("Bash"),
-            ]),
-        );
-        script_config.add_property("code".to_string(), JsonSchema::string());
-        schema.add_definition("ScriptConfig".to_string(), script_config);
-
         // Condition
         let mut condition = JsonSchema::object();
         condition.add_property("expression".to_string(), JsonSchema::string());
@@ -427,8 +405,6 @@ impl WorkflowSchemaGenerator {
             NodeKind::Start | NodeKind::End => {
                 JsonSchema::object().with_description(format!("{:?} node", node_kind))
             }
-            NodeKind::LLM(_) => JsonSchema::reference("#/$defs/LlmConfig"),
-            NodeKind::Code(_) => JsonSchema::reference("#/$defs/ScriptConfig"),
             _ => {
                 JsonSchema::object().with_description(format!("{:?} node configuration", node_kind))
             }
@@ -647,9 +623,9 @@ mod tests {
 
     #[test]
     fn test_reference_schema() {
-        let schema = JsonSchema::reference("#/$defs/LlmConfig");
+        let schema = JsonSchema::reference("#/$defs/ScriptConfig");
         assert!(schema.reference.is_some());
-        assert_eq!(schema.reference.unwrap(), "#/$defs/LlmConfig");
+        assert_eq!(schema.reference.unwrap(), "#/$defs/ScriptConfig");
     }
 
     #[test]

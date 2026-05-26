@@ -268,21 +268,15 @@ async fn test_cancel_execution() {
 // ================================================================
 #[tokio::test]
 async fn test_builder_workflow() {
-    use model::{WorkflowBuilder, ScriptConfig};
+    use model::WorkflowBuilder;
 
     let workflow = WorkflowBuilder::new("builder-test")
         .description("Built with builder pattern")
         .start("Start")
-        .code("Process", ScriptConfig {
-            runtime: "rhai".to_string(),
-            code: "let x = 1 + 1;".to_string(),
-            inputs: vec![],
-            output: "result".to_string(),
-        })
         .end("End")
         .build();
 
-    assert_eq!(workflow.nodes.len(), 3);
+    assert_eq!(workflow.nodes.len(), 2);
     let engine = Engine::new();
     let result = engine.execute(&workflow).await.unwrap();
     assert_eq!(result.state, ExecutionState::Completed);

@@ -6,10 +6,7 @@
     "version": "0.1.0",
     "created_at": "2026-05-26T00:00:00Z",
     "updated_at": "2026-05-26T00:00:00Z",
-    "tags": [
-      "example",
-      "error-handling"
-    ],
+    "tags": ["example", "error-handling"],
     "parent_id": null,
     "change_description": null,
     "schedule": null
@@ -18,37 +15,19 @@
     {
       "id": "00000000-0000-0000-0000-000000000201",
       "name": "Start",
-      "kind": {
-        "type": "Start"
-      },
+      "kind": { "type": "Start" },
       "position": null,
       "retry_config": null,
       "timeout_config": null
     },
     {
       "id": "00000000-0000-0000-0000-000000000202",
-      "name": "FetchData",
-      "kind": {
-        "type": "Code",
-        "config": {
-          "runtime": "rhai",
-          "code": "let data = \"some data\";",
-          "inputs": [],
-          "output": "data"
-        }
-      },
-      "position": null,
-      "retry_config": null,
-      "timeout_config": null
-    },
-    {
-      "id": "00000000-0000-0000-0000-000000000203",
-      "name": "SafeOp",
+      "name": "TryWork",
       "kind": {
         "type": "TryCatch",
         "config": {
-          "try_expression": "let result = 1 / 0;",
-          "catch_expression": "let result = \"fallback\";",
+          "try_expression": "process_data",
+          "catch_expression": null,
           "finally_expression": null,
           "rethrow": false,
           "error_variable": "error"
@@ -59,31 +38,35 @@
       "timeout_config": null
     },
     {
+      "id": "00000000-0000-0000-0000-000000000203",
+      "name": "HandleError",
+      "kind": {
+        "type": "Loop",
+        "config": {
+          "loop_type": {
+            "variant": "Repeat",
+            "count": "1",
+            "body_expression": "\"error handled\""
+          },
+          "max_iterations": 1
+        }
+      },
+      "position": null,
+      "retry_config": null,
+      "timeout_config": null
+    },
+    {
       "id": "00000000-0000-0000-0000-000000000204",
       "name": "End",
-      "kind": {
-        "type": "End"
-      },
+      "kind": { "type": "End" },
       "position": null,
       "retry_config": null,
       "timeout_config": null
     }
   ],
   "edges": [
-    {
-      "id": "00000000-0000-0000-0000-000000000211",
-      "from": "00000000-0000-0000-0000-000000000201",
-      "to": "00000000-0000-0000-0000-000000000202"
-    },
-    {
-      "id": "00000000-0000-0000-0000-000000000212",
-      "from": "00000000-0000-0000-0000-000000000202",
-      "to": "00000000-0000-0000-0000-000000000203"
-    },
-    {
-      "id": "00000000-0000-0000-0000-000000000213",
-      "from": "00000000-0000-0000-0000-000000000203",
-      "to": "00000000-0000-0000-0000-000000000204"
-    }
+    { "id": "00000000-0000-0000-0000-000000000211", "from": "00000000-0000-0000-0000-000000000201", "to": "00000000-0000-0000-0000-000000000202" },
+    { "id": "00000000-0000-0000-0000-000000000212", "from": "00000000-0000-0000-0000-000000000202", "to": "00000000-0000-0000-0000-000000000203" },
+    { "id": "00000000-0000-0000-0000-000000000213", "from": "00000000-0000-0000-0000-000000000203", "to": "00000000-0000-0000-0000-000000000204" }
   ]
 }

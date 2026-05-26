@@ -29,12 +29,15 @@
       "id": "00000000-0000-0000-0000-000000000402",
       "name": "TaskA",
       "kind": {
-        "type": "Code",
+        "type": "Loop",
         "config": {
-          "runtime": "rhai",
-          "code": "let result = \"task A done\";",
-          "inputs": [],
-          "output": "task_a"
+          "loop_type": {
+            "variant": "Repeat",
+            "count": "1",
+            "body_expression": "\"task A done\"",
+            "index_variable": null
+          },
+          "max_iterations": 1
         }
       },
       "position": null,
@@ -45,12 +48,15 @@
       "id": "00000000-0000-0000-0000-000000000403",
       "name": "TaskB",
       "kind": {
-        "type": "Code",
+        "type": "Loop",
         "config": {
-          "runtime": "rhai",
-          "code": "let result = \"task B done\";",
-          "inputs": [],
-          "output": "task_b"
+          "loop_type": {
+            "variant": "Repeat",
+            "count": "1",
+            "body_expression": "\"task B done\"",
+            "index_variable": null
+          },
+          "max_iterations": 1
         }
       },
       "position": null,
@@ -61,12 +67,15 @@
       "id": "00000000-0000-0000-0000-000000000404",
       "name": "TaskC",
       "kind": {
-        "type": "Code",
+        "type": "Loop",
         "config": {
-          "runtime": "rhai",
-          "code": "let result = \"task C done\";",
-          "inputs": [],
-          "output": "task_c"
+          "loop_type": {
+            "variant": "Repeat",
+            "count": "1",
+            "body_expression": "\"task C done\"",
+            "index_variable": null
+          },
+          "max_iterations": 1
         }
       },
       "position": null,
@@ -77,16 +86,15 @@
       "id": "00000000-0000-0000-0000-000000000405",
       "name": "Aggregate",
       "kind": {
-        "type": "Code",
+        "type": "Loop",
         "config": {
-          "runtime": "rhai",
-          "code": "let result = \"all done\";",
-          "inputs": [
-            "task_a",
-            "task_b",
-            "task_c"
-          ],
-          "output": "aggregated"
+          "loop_type": {
+            "variant": "Repeat",
+            "count": "1",
+            "body_expression": "\"all done\"",
+            "index_variable": null
+          },
+          "max_iterations": 1
         }
       },
       "position": null,

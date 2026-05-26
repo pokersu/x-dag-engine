@@ -29,12 +29,14 @@
       "id": "00000000-0000-0000-0000-000000000502",
       "name": "UnreliableOp",
       "kind": {
-        "type": "Code",
+        "type": "Loop",
         "config": {
-          "runtime": "rhai",
-          "code": "let result = \"operation succeeded\";",
-          "inputs": [],
-          "output": "result"
+          "loop_type": {
+            "variant": "Repeat",
+            "count": "1",
+            "body_expression": "\"operation succeeded\""
+          },
+          "max_iterations": 1
         }
       },
       "position": null,

@@ -426,7 +426,7 @@ impl WorkflowSchedule {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Edge, Node, NodeKind, ScriptConfig};
+    use crate::{Edge, Node, NodeKind};
     use chrono::Duration;
 
     #[test]

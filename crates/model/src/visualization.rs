@@ -11,24 +11,11 @@
 //! # Example
 //!
 //! ```rust
-//! use model::{Workflow, WorkflowBuilder, LlmConfig, visualization::WorkflowVisualizer};
-//!
-//! let llm_config = LlmConfig {
-//!     provider: "openai".to_string(),
-//!     model: "gpt-4".to_string(),
-//!     system_prompt: None,
-//!     prompt_template: "{{input}}".to_string(),
-//!     temperature: Some(0.7),
-//!     max_tokens: Some(100),
-//!     tools: vec![],
-//!     images: vec![],
-//!     extra_params: serde_json::json!({}),
-//! };
+//! use model::{Workflow, WorkflowBuilder, visualization::WorkflowVisualizer};
 //!
 //! let workflow = WorkflowBuilder::new("example")
 //!     .description("Example workflow")
 //!     .start("Start")
-//!     .llm("Generate text", llm_config)
 //!     .end("End")
 //!     .build();
 //!
@@ -231,8 +218,6 @@ impl<'a> WorkflowVisualizer<'a> {
             let node_id = self.sanitize_id(&node.id.to_string());
             let class_name = match node.kind {
                 NodeKind::Start | NodeKind::End => "startEnd",
-                NodeKind::LLM(_) => "llm",
-                NodeKind::Code(_) => "code",
                 NodeKind::IfElse(_) | NodeKind::Switch(_) => "decision",
                 NodeKind::Loop(_) => "loop",
                 NodeKind::Parallel(_) => "parallel",
@@ -292,8 +277,6 @@ impl<'a> WorkflowVisualizer<'a> {
         let (shape, color) = match node.kind {
             NodeKind::Start => ("ellipse", "#90EE90"),
             NodeKind::End => ("ellipse", "#FFB6C1"),
-            NodeKind::LLM(_) => ("box", "#87CEEB"),
-            NodeKind::Code(_) => ("box", "#FFB6C1"),
             NodeKind::IfElse(_) | NodeKind::Switch(_) => ("diamond", "#FFD700"),
             NodeKind::Loop(_) => ("hexagon", "#DDA0DD"),
             NodeKind::Parallel(_) => ("parallelogram", "#F0E68C"),

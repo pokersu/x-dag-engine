@@ -24,7 +24,6 @@ cron = { workspace = true }
 regex = "1.12"
 evalexpr = "13.1"
 serde_json_path = "0.7"
-rhai = { workspace = true }
 reqwest = { workspace = true }
 futures = { workspace = true }
 hmac = "0.12"
