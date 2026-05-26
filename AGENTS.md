@@ -24,7 +24,7 @@
 
 - ✅ 四个核心 crate 保留自 oxify，已清除 LLM / 向量 / MCP / 认证 / Code 等无关代码
 - ✅ engine 执行核心已重写（拓扑排序 + 并行执行 + 节点分派）
-- ✅ 6 个 JSON flow 定义文件（Code 节点已替换为 Loop 节点）
+- ✅ 7 个 JSON flow 定义文件（含 service-call.json）
 - ✅ 已推送到 GitHub
 
 ### 节点类型
@@ -40,7 +40,7 @@
 | `TryCatch` | try-catch-finally 异常处理 | ✅ 已实现 |
 | `Parallel` | 扇出/扇入并行执行 | ✅ 已实现 |
 | `SubWorkflow` | 嵌套子工作流 | ✅ 已实现 |
-| `Service` | HTTP 服务调用（GET/POST/PUT/DELETE，Bearer/ApiKey/Basic 认证） | ✅ 已实现 |
+| `Service` | HTTP 服务调用（GET/POST/PUT/DELETE，Bearer/ApiKey/Basic/OAuth2 认证） | ✅ 已实现 |
 
 ### 已清理的类型（原 oxify 遗留，已删除）
 
