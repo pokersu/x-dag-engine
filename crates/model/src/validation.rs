@@ -553,6 +553,7 @@ impl WorkflowValidator {
                 NodeKind::SubWorkflow(_) => "SubWorkflow",
                 NodeKind::Switch(_) => "Switch",
                 NodeKind::Parallel(_) => "Parallel",
+                NodeKind::Service(_) => "Service",
             };
             *node_type_counts.entry(type_name.to_string()).or_insert(0) += 1;
         }

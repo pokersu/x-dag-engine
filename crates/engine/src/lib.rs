@@ -36,7 +36,7 @@ pub use webhook::{WebhookConfig, WebhookId, WebhookRegistry, WebhookTrigger};
 
 use model::{
     ExecutionContext, ExecutionResult, ExecutionState, Node, NodeExecutionResult, NodeId, NodeKind,
-    Workflow,
+    ServiceAuth, Workflow,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -367,6 +367,11 @@ impl Engine {
             NodeKind::Parallel(config) => {
                 ExecutionResult::Success(serde_json::json!({ "parallel": true }))
             }
+            NodeKind::Service(config) => {
+                let value = Self::execute_service(config).await
+                    .map_err(|e| EngineError::ExecutionError(e.to_string()))?;
+                ExecutionResult::Success(value)
+            }
             NodeKind::SubWorkflow(config) => {
                 let value = SubWorkflowExecutor::execute(config, ctx).await
                     .map_err(|e| EngineError::ExecutionError(e.to_string()))?;
@@ -378,6 +383,56 @@ impl Engine {
         let mut node_result = NodeExecutionResult::new();
         node_result = node_result.complete(result);
         Ok(node_result)
+    }
+
+    /// Execute an HTTP service call via RestConnector
+    async fn execute_service(config: &model::ServiceConfig) -> Result<serde_json::Value> {
+        use model::ServiceAuth as SA;
+        use rest_connector::{AuthConfig, RestConfig, RestConnector};
+
+        let mut rest_config = RestConfig::new("")
+            .with_timeout_secs(config.timeout_secs);
+
+        // Convert auth
+        let auth = match &config.auth {
+            SA::None => AuthConfig::None,
+            SA::Bearer { token } => AuthConfig::Bearer { token: token.clone() },
+            SA::ApiKey { key, value, in_header } => AuthConfig::ApiKey {
+                key: key.clone(),
+                value: value.clone(),
+                in_header: *in_header,
+            },
+            SA::Basic { username, password } => AuthConfig::Basic {
+                username: username.clone(),
+                password: password.clone(),
+            },
+        };
+        if !matches!(auth, AuthConfig::None) {
+            rest_config = rest_config.with_auth(auth);
+        }
+
+        // Apply default headers
+        for (k, v) in &config.headers {
+            rest_config = rest_config.with_header(k.clone(), v.clone());
+        }
+
+        let connector = RestConnector::new(rest_config);
+
+        // Parse HTTP method
+        let method = reqwest::Method::from_bytes(config.method.as_bytes())
+            .map_err(|e| EngineError::ExecutionError(format!("Invalid HTTP method: {}", e)))?;
+
+        let response = connector
+            .request(method, &config.url, config.body.clone(), Some(config.query_params.clone()))
+            .await
+            .map_err(|e| EngineError::ExecutionError(format!("Service call failed: {}", e)))?;
+
+        Ok(serde_json::json!({
+            "status": response.status,
+            "headers": response.headers,
+            "body": response.body,
+            "response_time_ms": response.response_time_ms,
+        }))
     }
 
     /// Compute execution levels via topological sort (BFS)

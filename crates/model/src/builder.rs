@@ -5,7 +5,7 @@
 
 use crate::{
     Condition, Edge, LoopConfig, Node, NodeId,
-    NodeKind, ParallelConfig, RetryConfig, SubWorkflowConfig, SwitchConfig,
+    NodeKind, ParallelConfig, RetryConfig, ServiceAuth, ServiceConfig, SubWorkflowConfig, SwitchConfig,
     TimeoutConfig, TryCatchConfig, Workflow,
 };
 
@@ -134,6 +134,21 @@ impl WorkflowBuilder {
     /// Add a switch node
     pub fn switch(mut self, name: impl Into<String>, config: SwitchConfig) -> Self {
         let node = Node::new(name.into(), NodeKind::Switch(config));
+        let node_id = node.id;
+        self.workflow.add_node(node);
+
+        // Auto-connect from last node if exists
+        if let Some(from_id) = self.last_node_id {
+            self.workflow.add_edge(Edge::new(from_id, node_id));
+        }
+
+        self.last_node_id = Some(node_id);
+        self
+    }
+
+    /// Add an HTTP service call node
+    pub fn service(mut self, name: impl Into<String>, config: ServiceConfig) -> Self {
+        let node = Node::new(name.into(), NodeKind::Service(config));
         let node_id = node.id;
         self.workflow.add_node(node);
 

@@ -393,6 +393,13 @@ impl WorkflowSchemaGenerator {
 
     /// Add node type definitions to schema
     fn add_node_type_definitions(&self, schema: &mut JsonSchema) {
+        // ServiceConfig
+        let mut service_config = JsonSchema::object();
+        service_config.add_property("url".to_string(), JsonSchema::string());
+        service_config.add_property("method".to_string(), JsonSchema::string());
+        service_config.add_property("timeout_secs".to_string(), JsonSchema::number());
+        schema.add_definition("ServiceConfig".to_string(), service_config);
+
         // Condition
         let mut condition = JsonSchema::object();
         condition.add_property("expression".to_string(), JsonSchema::string());

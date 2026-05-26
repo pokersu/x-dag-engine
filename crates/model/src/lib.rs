@@ -29,8 +29,8 @@ pub use linter::{
 pub use node::{
     Condition, LoopConfig,
     LoopType, Node, NodeId, NodeKind, ParallelConfig, ParallelStrategy, ParallelTask,
-    RetryConfig, SubWorkflowConfig, SwitchCase, SwitchConfig, TimeoutAction,
-    TimeoutConfig, TryCatchConfig,
+    RetryConfig, ServiceAuth, ServiceConfig, SubWorkflowConfig, SwitchCase, SwitchConfig,
+    TimeoutAction, TimeoutConfig, TryCatchConfig,
 };
 pub use schedule::{Schedule, ScheduleExecution, ScheduleId};
 pub use template::{

@@ -157,6 +157,9 @@ pub enum NodeKind {
 
     /// Parallel execution node (fan-out/fan-in)
     Parallel(ParallelConfig),
+
+    /// HTTP service call node
+    Service(ServiceConfig),
 }
 
 /// Configuration for conditional nodes
@@ -382,9 +385,103 @@ pub struct ParallelTask {
     pub description: Option<String>,
 }
 
+/// Configuration for HTTP service call nodes
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceConfig {
+    /// Request URL (can contain {{variable}} placeholders)
+    pub url: String,
+
+    /// HTTP method (GET, POST, PUT, PATCH, DELETE)
+    #[serde(default = "default_service_method")]
+    pub method: String,
+
+    /// Request headers
+    #[serde(default)]
+    pub headers: std::collections::HashMap<String, String>,
+
+    /// Request body (JSON, with {{variable}} support)
+    #[serde(default)]
+    pub body: Option<serde_json::Value>,
+
+    /// Query parameters
+    #[serde(default)]
+    pub query_params: std::collections::HashMap<String, String>,
+
+    /// Authentication configuration
+    #[serde(default)]
+    pub auth: ServiceAuth,
+
+    /// Request timeout in seconds (default: 30)
+    #[serde(default = "default_service_timeout")]
+    pub timeout_secs: u64,
+}
+
+fn default_service_method() -> String {
+    "GET".to_string()
+}
+
+fn default_service_timeout() -> u64 {
+    30
+}
+
+/// Authentication configuration for Service nodes
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ServiceAuth {
+    /// No authentication
+    #[serde(rename = "none")]
+    None,
+    /// Bearer token authentication
+    Bearer { token: String },
+    /// API key in header or query parameter
+    ApiKey {
+        key: String,
+        value: String,
+        #[serde(default)]
+        in_header: bool,
+    },
+    /// Basic authentication
+    Basic { username: String, password: String },
+}
+
+impl Default for ServiceAuth {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_service_node() {
+        let config = ServiceConfig {
+            url: "https://api.example.com/data".to_string(),
+            method: "POST".to_string(),
+            headers: [("Content-Type".to_string(), "application/json".to_string())].into(),
+            body: Some(serde_json::json!({"key": "value"})),
+            query_params: [("page".to_string(), "1".to_string())].into(),
+            auth: ServiceAuth::Bearer { token: "tok_xxx".to_string() },
+            timeout_secs: 15,
+        };
+
+        let node = Node::new("API Call".to_string(), NodeKind::Service(config));
+
+        assert_eq!(node.name, "API Call");
+        if let NodeKind::Service(cfg) = &node.kind {
+            assert_eq!(cfg.url, "https://api.example.com/data");
+            assert_eq!(cfg.method, "POST");
+            assert!(matches!(cfg.auth, ServiceAuth::Bearer { .. }));
+        } else {
+            panic!("Expected Service node");
+        }
+
+        // Round-trip JSON
+        let json = serde_json::to_string(&node).unwrap();
+        let restored: Node = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.name, "API Call");
+    }
 
     #[test]
     fn test_switch_node() {

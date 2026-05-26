@@ -379,7 +379,7 @@ impl WorkflowLinter {
         let mut findings = Vec::new();
 
         for node in &workflow.nodes {
-            let needs_timeout = false;
+            let needs_timeout = matches!(node.kind, NodeKind::Service(_));
 
             if needs_timeout && node.timeout_config.is_none() {
                 findings.push(

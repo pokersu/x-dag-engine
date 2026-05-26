@@ -29,7 +29,7 @@
 
 ### 节点类型
 
-支持 8 种节点类型：
+支持 9 种节点类型：
 
 | 类型 | 说明 | 状态 |
 |---|---|---|
@@ -40,6 +40,7 @@
 | `TryCatch` | try-catch-finally 异常处理 | ✅ 已实现 |
 | `Parallel` | 扇出/扇入并行执行 | ✅ 已实现 |
 | `SubWorkflow` | 嵌套子工作流 | ✅ 已实现 |
+| `Service` | HTTP 服务调用（GET/POST/PUT/DELETE，Bearer/ApiKey/Basic 认证） | ✅ 已实现 |
 
 ### 已清理的类型（原 oxify 遗留，已删除）
 
@@ -53,34 +54,26 @@
 
 ## 已知缺口
 
-### 1. HttpCall 节点类型未实现
+### 1. 远程 Worker 执行
 
-`rest_connector`（完整的 HTTP 客户端）存在于 engine 中但未被任何节点使用。需要：
+Service 节点如果需要由外部 Worker 执行：
 
-- 在 `model/src/node.rs` 的 `NodeKind` 中新增 `HttpCall(HttpCallConfig)`
-- 在 `engine/src/lib.rs` 的 `execute_node()` 中匹配并调用 `rest_connector`
-- 新增对应的 JsonSchema / Builder / Serialization 支持
-
-### 2. 远程 Worker 执行
-
-HttpCall 节点如果需要由外部 Worker 执行：
-
-- `model` 层：新增 `RemoteHttpCall(HttpCallConfig)` + `ExecutionResult::Pending`
+- `model` 层：新增 `RemoteServiceCall` 或 `ExecutionResult::Pending`
 - `engine` 层：新增 `TaskRegistry`，管理 pending/complete 状态
 - `server` 层：新增 `GET /tasks/next` / `POST /tasks/:id/result` 供 Worker 拉取任务和回报结果
 
-### 3. 变量上下文
+### 2. 变量上下文
 
 - `node_results` 全程累积，最后一个节点能看到前面所有节点的输出
 - 条件表达式支持 JSONPath 点语法（`$.node_{uuid}.field`）引用前置节点输出
 
-### 4. 故障恢复
+### 3. 故障恢复
 
 - 当前纯内存执行，引擎重启后正在运行的流程丢失
 - 无检查点/快照机制
 - 原项目有 checkpoint.rs，已被删除
 
-### 5. 分布式执行
+### 4. 分布式执行
 
 - 单机模型，无法跨实例分散节点执行
 - 需要任务队列 + 共享状态层才能实现

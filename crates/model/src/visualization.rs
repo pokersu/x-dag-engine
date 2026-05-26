@@ -221,6 +221,7 @@ impl<'a> WorkflowVisualizer<'a> {
                 NodeKind::IfElse(_) | NodeKind::Switch(_) => "decision",
                 NodeKind::Loop(_) => "loop",
                 NodeKind::Parallel(_) => "parallel",
+                NodeKind::Service(_) => "service",
                 _ => continue,
             };
             styling.push_str(&format!("    class {} {}\n", node_id, class_name));
@@ -280,6 +281,7 @@ impl<'a> WorkflowVisualizer<'a> {
             NodeKind::IfElse(_) | NodeKind::Switch(_) => ("diamond", "#FFD700"),
             NodeKind::Loop(_) => ("hexagon", "#DDA0DD"),
             NodeKind::Parallel(_) => ("parallelogram", "#F0E68C"),
+            NodeKind::Service(_) => ("box", "#87CEEB"),
             _ => ("box", "#E0E0E0"),
         };
 
