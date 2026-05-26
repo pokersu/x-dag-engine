@@ -10,7 +10,8 @@
 
 - **DAG 工作流** — 拓扑排序 + 分层并行执行
 - **控制流节点** — IfElse / Switch / Loop / TryCatch / Parallel / SubWorkflow
-- **Service 节点** — 内置 HTTP 客户端（支持 GET/POST/PUT/DELETE、Bearer / API Key / Basic / OAuth2 认证）
+- **Service 节点** — 内置 HTTP 客户端，支持 Internal（RestConnector 直连）和 Remote（推送到外部 Worker 队列）两种执行模式
+- **认证方式** — Bearer / API Key / Basic / OAuth2 客户端凭证
 - **重试机制** — 指数退避重试
 - **事件驱动** — 执行事件总线（SSE 推送）
 - **定时调度** — cron 表达式调度

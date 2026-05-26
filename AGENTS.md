@@ -56,11 +56,12 @@
 
 ### 1. 远程 Worker 执行
 
-Service 节点如果需要由外部 Worker 执行：
+ServiceExecutor 已内置 `Remote` 模式基础设施（序列化任务 → push 队列 → 返回 dispatch 确认），但实际的队列推送（Redis / RabbitMQ / HTTP endpoint）尚未接入：
 
-- `model` 层：新增 `RemoteServiceCall` 或 `ExecutionResult::Pending`
-- `engine` 层：新增 `TaskRegistry`，管理 pending/complete 状态
-- `server` 层：新增 `GET /tasks/next` / `POST /tasks/:id/result` 供 Worker 拉取任务和回报结果
+- [x] `service_executor.rs` — `ServiceExecutionMode::Remote` 枚举 + 序列化桩
+- [ ] 接入具体队列客户端（Redis `rpush` / RabbitMQ / reqwest POST）
+- [ ] `engine` 层：`TaskRegistry`，管理 pending/complete 状态
+- [ ] `server` 层：`GET /tasks/next` / `POST /tasks/:id/result` 供 Worker 拉取任务和回报结果
 
 ### 2. 变量上下文
 
