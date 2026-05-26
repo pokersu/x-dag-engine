@@ -1,10 +1,10 @@
-# dag-engine
+# x-dag-engine
 
 轻量级 DAG 编排引擎，用于 API 编排和工作流逻辑控制。
 
 ## Overview
 
-`dag-engine` 是一个基于有向无环图（DAG）的编排引擎，支持将多个 API 调用、条件分支、循环、错误处理和并行执行组合成可复用的工作流。专注于**轻量、内嵌、无外部依赖**。
+`x-dag-engine` 是一个基于有向无环图（DAG）的编排引擎，支持将多个 API 调用、条件分支、循环、错误处理和并行执行组合成可复用的工作流。专注于**轻量、内嵌、无外部依赖**。
 
 ## Features
 
@@ -21,12 +21,12 @@
 ## Architecture
 
 ```
-dag-engine/
+x-dag-engine/
 ├── crates/
-│   ├── oxify-model/       # DAG 数据模型（Workflow / Node / Edge）
-│   ├── oxify-engine/      # 执行引擎（拓扑排序 + 节点执行器）
-│   ├── oxify-server/      # Axum HTTP 服务
-│   └── oxify-storage/     # SQLite 持久化层
+│   ├── model/       # DAG 数据模型（Workflow / Node / Edge）
+│   ├── engine/      # 执行引擎（拓扑排序 + 节点执行器）
+│   ├── server/      # Axum HTTP 服务
+│   └── storage/     # SQLite 持久化层
 ├── flows/                 # 示例工作流定义（JSON）
 └── tests/                 # 集成测试
 ```
@@ -67,7 +67,7 @@ println!("{:?}", result.state); // Completed
 ## Run Tests
 
 ```bash
-cargo test -p oxify-engine --test integration_test
+cargo test -p engine --test integration_test
 ```
 
 ## Acknowledgements

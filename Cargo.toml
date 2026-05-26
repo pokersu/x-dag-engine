@@ -1,16 +1,16 @@
 [workspace]
 members = [
-    "crates/oxify-model",
-    "crates/oxify-engine",
-    "crates/oxify-server",
-    "crates/oxify-storage",
+    "crates/model",
+    "crates/engine",
+    "crates/server",
+    "crates/storage",
 ]
 resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["dag-engine Contributors"]
+authors = ["x-dag-engine Contributors"]
 license = "Apache-2.0"
 
 [workspace.dependencies]
