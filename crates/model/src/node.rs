@@ -442,6 +442,14 @@ pub enum ServiceAuth {
     },
     /// Basic authentication
     Basic { username: String, password: String },
+    /// OAuth2 client credentials
+    OAuth2 {
+        client_id: String,
+        client_secret: String,
+        token_url: String,
+        #[serde(default)]
+        scopes: Vec<String>,
+    },
 }
 
 impl Default for ServiceAuth {

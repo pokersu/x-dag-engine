@@ -8,6 +8,12 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/oxify-server/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/oxify-server/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/crates/oxify-storage/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/engine/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/engine/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/model/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/server/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/storage/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

@@ -406,6 +406,12 @@ impl Engine {
                 username: username.clone(),
                 password: password.clone(),
             },
+            SA::OAuth2 { client_id, client_secret, token_url, scopes } => AuthConfig::OAuth2 {
+                client_id: client_id.clone(),
+                client_secret: client_secret.clone(),
+                token_url: token_url.clone(),
+                scopes: scopes.clone(),
+            },
         };
         if !matches!(auth, AuthConfig::None) {
             rest_config = rest_config.with_auth(auth);
