@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "id": "00000000-0000-0000-0000-000000000500",
+    "name": "with-retry",
+    "description": "Workflow with retry configuration on a node",
+    "version": "0.1.0",
+    "created_at": "2026-05-26T00:00:00Z",
+    "updated_at": "2026-05-26T00:00:00Z",
+    "tags": [
+      "example",
+      "retry"
+    ],
+    "parent_id": null,
+    "change_description": null,
+    "schedule": null
+  },
+  "nodes": [
+    {
+      "id": "00000000-0000-0000-0000-000000000501",
+      "name": "Start",
+      "kind": {
+        "type": "Start"
+      },
+      "position": null,
+      "retry_config": null,
+      "timeout_config": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000502",
+      "name": "UnreliableOp",
+      "kind": {
+        "type": "Code",
+        "config": {
+          "runtime": "rhai",
+          "code": "let result = \"operation succeeded\";",
+          "inputs": [],
+          "output": "result"
+        }
+      },
+      "position": null,
+      "retry_config": {
+        "max_retries": 3,
+        "initial_delay_ms": 500,
+        "backoff_multiplier": 2.0,
+        "max_delay_ms": 5000
+      },
+      "timeout_config": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000503",
+      "name": "End",
+      "kind": {
+        "type": "End"
+      },
+      "position": null,
+      "retry_config": null,
+      "timeout_config": null
+    }
+  ],
+  "edges": [
+    {
+      "id": "00000000-0000-0000-0000-000000000511",
+      "from": "00000000-0000-0000-0000-000000000501",
+      "to": "00000000-0000-0000-0000-000000000502"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000512",
+      "from": "00000000-0000-0000-0000-000000000502",
+      "to": "00000000-0000-0000-0000-000000000503"
+    }
+  ]
+}
